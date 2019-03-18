@@ -27,11 +27,12 @@
 
     <div class="box">
         <button id="startButton">Start</button>
-        <button id="callButton">Call</button>
+        <button id="createOfferButton">Create Offer</button>
+        <button id="setOfferButton">Set Offer</button>
         <button id="hangupButton">Hang Up</button>
     </div>
 
-    <div class="box">
+    <div class="box" hidden=true>
         <span>SDP Semantics:</span>
         <select id="sdpSemantics">
             <option selected value="">Default</option>
@@ -40,8 +41,14 @@
         </select>
     </div>
 
-    <p><code>MediaStream localStream pc1 pc2</code></p>
-
+    <div class="box">
+        <span>Codecs</span>
+        <select id="codec">
+            <option selected value=" 100 101">H264</option>
+            <option value=" 96 97">VP8</option>
+            <option value=" 98 99">VP9</option>
+        </select>
+    </div>
 </div>
 
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>

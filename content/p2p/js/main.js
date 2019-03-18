@@ -1,12 +1,16 @@
 'use strict';
 
 const startButton = document.getElementById('startButton');
-const callButton = document.getElementById('callButton');
+const createOfferButton = document.getElementById('createOfferButton');
+const setOfferButton = document.getElementById('setOfferButton');
 const hangupButton = document.getElementById('hangupButton');
-callButton.disabled = true;
+
+createOfferButton.disabled = true;
+setOfferButton.disabled = true;
 hangupButton.disabled = true;
 startButton.addEventListener('click', start);
-callButton.addEventListener('click', call);
+createOfferButton.addEventListener('click', createOffer);
+setOfferButton.addEventListener('click', setOffer);
 hangupButton.addEventListener('click', hangup);
 
 let startTime;
@@ -35,6 +39,8 @@ remoteVideo.addEventListener('resize', () => {
 let localStream;
 let pc1;
 let pc2;
+let rtpSender;
+let offer;
 const offerOptions = {
   offerToReceiveAudio: 1,
   offerToReceiveVideo: 1
@@ -60,7 +66,7 @@ async function start() {
     console.log('Received local stream');
     localVideo.srcObject = stream;
     localStream = stream;
-    callButton.disabled = false;
+    createOfferButton.disabled = false;
   } catch (e) {
     alert(`getUserMedia() error: ${e.name}`);
   }
@@ -72,38 +78,41 @@ function getSelectedSdpSemantics() {
   return option.value === '' ? {} : {sdpSemantics: option.value};
 }
 
-async function call() {
-  callButton.disabled = true;
-  hangupButton.disabled = false;
-  console.log('Starting call');
+async function createOffer() {
+  createOfferButton.disabled = true;
+  setOfferButton.disabled = false;
+  console.log('Creating an offer');
   startTime = window.performance.now();
   const videoTracks = localStream.getVideoTracks();
-  const audioTracks = localStream.getAudioTracks();
   if (videoTracks.length > 0) {
     console.log(`Using video device: ${videoTracks[0].label}`);
-  }
-  if (audioTracks.length > 0) {
-    console.log(`Using audio device: ${audioTracks[0].label}`);
   }
   const configuration = getSelectedSdpSemantics();
   console.log('RTCPeerConnection configuration:', configuration);
   pc1 = new RTCPeerConnection(configuration);
-  console.log('Created local peer connection object pc1');
   pc1.addEventListener('icecandidate', e => onIceCandidate(pc1, e));
-  pc2 = new RTCPeerConnection(configuration);
-  console.log('Created remote peer connection object pc2');
-  pc2.addEventListener('icecandidate', e => onIceCandidate(pc2, e));
   pc1.addEventListener('iceconnectionstatechange', e => onIceStateChange(pc1, e));
+  console.log('Created local peer connection object pc1');
+  pc2 = new RTCPeerConnection(configuration);
+  pc2.addEventListener('icecandidate', e => onIceCandidate(pc2, e));
   pc2.addEventListener('iceconnectionstatechange', e => onIceStateChange(pc2, e));
   pc2.addEventListener('track', gotRemoteStream);
+  console.log('Created remote peer connection object pc2');
 
-  localStream.getTracks().forEach(track => pc1.addTrack(track, localStream));
+  rtpSender = pc1.addTrack(videoTracks[0], localStream);
+  const old_params = rtpSender.getParameters();
+  let new_params = old_params;
+  new_params['degradationPreference'] = 'maintain-resolution'
+  try {
+    rtpSender.setParameters(new_params);
+  } catch (e) {
+    console.log(`Failed to set parameters:\n${new_params.toString()}\nError:${e.toString()}`);
+  }
   console.log('Added local stream to pc1');
 
   try {
     console.log('pc1 createOffer start');
-    const offer = await pc1.createOffer(offerOptions);
-    await onCreateOfferSuccess(offer);
+    offer = await pc1.createOffer(offerOptions);
   } catch (e) {
     onCreateSessionDescriptionError(e);
   }
@@ -113,22 +122,52 @@ function onCreateSessionDescriptionError(error) {
   console.log(`Failed to create session description: ${error.toString()}`);
 }
 
-async function onCreateOfferSuccess(desc) {
-  console.log(`Offer from pc1\n${desc.sdp}`);
+function FindCodecs() {
+  let sdp = offer.sdp;
+  sdp = sdp.split('\n');
+  let selected = document.querySelector('#codec');
+  selected = selected.options[selected.selectedIndex].value;
+  for (var i=0;i<sdp.length;i++) {
+    if (sdp[i].startsWith('m=video')) {
+      let l = sdp[i];
+      const len = selected.length;
+      let pos = l.search(selected);
+      if (pos != -1) {
+        // m=video 9 UDP/TLS/RTP/SAVPF 96 97 98 99 100 101 102 123 127 122 125 107 108 109 124
+        let pts_selected = selected.split(' ') // '', '96' , '97'
+        let x = l.split(' ')
+        let y = [x[0], x[1], x[2], pts_selected[1], pts_selected[2]]
+        for (var j=3; j<x.length; j++)
+          if (selected.search(x[j]) == -1)
+            y.push(x[j])
+        let new_line = y.join(' ');
+        sdp[i] = new_line;
+        i = sdp.length; // exiting
+      }
+    }
+  }
+  offer.sdp = sdp.join('\n');
+}
+
+async function setOffer() {
+  hangupButton.disabled = false;
+  console.log(`Offer from pc1\n${offer.sdp}`);
+
   console.log('pc1 setLocalDescription start');
+  FindCodecs();
   try {
-    await pc1.setLocalDescription(desc);
+    await pc1.setLocalDescription(offer);
     onSetLocalSuccess(pc1);
   } catch (e) {
-    onSetSessionDescriptionError();
+    onSetSessionDescriptionError(e);
   }
 
   console.log('pc2 setRemoteDescription start');
   try {
-    await pc2.setRemoteDescription(desc);
+    await pc2.setRemoteDescription(offer);
     onSetRemoteSuccess(pc2);
   } catch (e) {
-    onSetSessionDescriptionError();
+    onSetSessionDescriptionError(e);
   }
 
   console.log('pc2 createAnswer start');
@@ -140,6 +179,24 @@ async function onCreateOfferSuccess(desc) {
     await onCreateAnswerSuccess(answer);
   } catch (e) {
     onCreateSessionDescriptionError(e);
+  }
+}
+
+async function onCreateAnswerSuccess(desc) {
+  console.log(`Answer from pc2:\n${desc.sdp}`);
+  console.log('pc2 setLocalDescription start');
+  try {
+    await pc2.setLocalDescription(desc);
+    onSetLocalSuccess(pc2);
+  } catch (e) {
+    onSetSessionDescriptionError(e);
+  }
+  console.log('pc1 setRemoteDescription start');
+  try {
+    await pc1.setRemoteDescription(desc);
+    onSetRemoteSuccess(pc1);
+  } catch (e) {
+    onSetSessionDescriptionError(e);
   }
 }
 
@@ -159,24 +216,6 @@ function gotRemoteStream(e) {
   if (remoteVideo.srcObject !== e.streams[0]) {
     remoteVideo.srcObject = e.streams[0];
     console.log('pc2 received remote stream');
-  }
-}
-
-async function onCreateAnswerSuccess(desc) {
-  console.log(`Answer from pc2:\n${desc.sdp}`);
-  console.log('pc2 setLocalDescription start');
-  try {
-    await pc2.setLocalDescription(desc);
-    onSetLocalSuccess(pc2);
-  } catch (e) {
-    onSetSessionDescriptionError(e);
-  }
-  console.log('pc1 setRemoteDescription start');
-  try {
-    await pc1.setRemoteDescription(desc);
-    onSetRemoteSuccess(pc1);
-  } catch (e) {
-    onSetSessionDescriptionError(e);
   }
 }
 
@@ -207,10 +246,15 @@ function onIceStateChange(pc, event) {
 
 function hangup() {
   console.log('Ending call');
+  rtpSender = null;
   pc1.close();
   pc2.close();
   pc1 = null;
   pc2 = null;
+  localVideo.srcObject = null;
+  localStream = null;
+  startButton.disabled = false;
+  createOfferButton.disabled = true;
+  setOfferButton.disabled = true;
   hangupButton.disabled = true;
-  callButton.disabled = false;
 }
