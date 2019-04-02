@@ -42,12 +42,19 @@
     </div>
 
     <div class="box">
-        <span>Codecs</span>
-        <select id="codec">
-            <option selected value=" 100 101">H264</option>
-            <option value=" 96 97">VP8</option>
-            <option value=" 98 99">VP9</option>
-        </select>
+        <table>
+            <tr><td>Width</td>    <td><input type="text" id="width"     value="1920"></td></tr>
+            <tr><td>Height</td>   <td><input type="text" id="height"    value="1080"></td></tr>
+            <tr><td>Framerate</td><td><input type="text" id="framerate" value="30"></td></tr>
+            <tr><td>Codec</td><td>
+                <select id="codec">
+                    <option selected value=" 102 122">H264</option>
+                    <option value=" 125 107">H264 another</option>
+                    <option value=" 96 97">VP8</option>
+                    <option value=" 100 101">VP9</option>
+                </select>
+            </td></tr>
+        </table>
     </div>
 </div>
 

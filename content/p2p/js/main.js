@@ -56,12 +56,12 @@ function getOtherPc(pc) {
 
 async function start() {
   console.log('Requesting local stream');
-  startButton.disabled = true;
+  // startButton.disabled = true;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({audio: false, video: {
-      width: { exact: 1920 },
-      height: { exact: 1080 },
-      frameRate: { exact: 30 }
+      width:     { exact: parseInt(document.querySelector('#width').value) },
+      height:    { exact: parseInt(document.querySelector('#height').value) },
+      frameRate: { exact: parseInt(document.querySelector('#framerate').value) }
     }});
     console.log('Received local stream');
     localVideo.srcObject = stream;
