@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta name="description" content="WebRTC code samples">
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1">
+    <meta id="theme-color" name="theme-color" content="#ffffff">
+
+    <base target="_blank">
+
+    <title>Sender</title>
+
+    <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../../css/global.css"/>
+    <link rel="stylesheet" href="main.css"/>
+
+</head>
+
+<body>
+
+<div id="container">
+    <h1>Sender</h1>
+
+    <table>
+        <tr><td>WebSocket Server</td><td><input type="text" id="server" value="127.0.0.1"></td></tr>
+    </table>
+    <video id="localVideo" playsinline autoplay muted></video>
+
+    <div class="box">
+        <button id="startButton">Start</button>
+        <button id="connectButton">Connect to Signal Server</button>
+        <button id="negotiateButton">Negotiate</button>
+        <button id="hangupButton">Hang Up</button>
+    </div>
+
+    <table>
+        <tr><td>Width</td>    <td><input type="text" id="width"     value="1920"></td></tr>
+        <tr><td>Height</td>   <td><input type="text" id="height"    value="1080"></td></tr>
+        <tr><td>Framerate</td><td><input type="text" id="framerate" value="30"></td></tr>
+        <tr><td>Codec</td><td>
+            <select id="codec">
+                <option selected value=" 102 122">H264</option>
+                <option value=" 125 107">H264 another</option>
+                <option value=" 96 97">VP8</option>
+                <option value=" 100 101">VP9</option>
+            </select>
+        </td></tr>
+    </table>
+</div>
+
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src="main.js" async></script>
+
+</body>
+</html>
