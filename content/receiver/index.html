@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta name="description" content="WebRTC code samples">
+    <meta name="viewport" content="width=device-width, user-scalable=yes, initial-scale=1, maximum-scale=1">
+    <meta id="theme-color" name="theme-color" content="#ffffff">
+
+    <base target="_blank">
+
+    <title>Receiver</title>
+
+    <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../../css/global.css"/>
+    <link rel="stylesheet" href="main.css"/>
+
+</head>
+
+<body>
+
+<div id="container">
+    <h1>Receiver</h1>
+
+    <table>
+        <tr><td>WebSocket Server</td><td><input type="text" id="server" value="100.64.0.3"></td></tr>
+    </table>
+    <video id="localVideo" playsinline autoplay></video>
+
+    <div class="box">
+        <button id="connectButton">Connect to Signal Server</button>
+        <button id="hangupButton">Hang Up</button>
+    </div>
+
+</div>
+
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src="main.js" async></script>
+
+</body>
+</html>
