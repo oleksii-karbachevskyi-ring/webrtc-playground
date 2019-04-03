@@ -1,5 +1,14 @@
+#
+# Copyright (C) 2019, Ring.
+#
+# All rights reserved. No Part of this file may be reproduced, stored
+# in a retrieval system, or transmitted, in any form, or by any means,
+# electronic, mechanical, photocopying, recording, or otherwise,
+# without the prior consent of Ring.
+#
+
 cmake_minimum_required(VERSION 3.1)
-project(wsserver CXX)
+project(wsserver)
 
 set(BOOST_ROOT /opt)
 set(CMAKE_CXX_STANDARD 17)
