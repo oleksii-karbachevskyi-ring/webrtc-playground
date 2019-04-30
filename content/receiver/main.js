@@ -39,7 +39,7 @@ function getName(pc) {
 }
 
 function connect() {
-    socket = new WebSocket('ws://' + document.querySelector('#server').value + ':8080/');
+    socket = new WebSocket('ws://' + document.querySelector('#server').value);
     socket.onmessage = function (e) { onMessage(e.data); };
     socket.onopen = function () { socket.send('{"who":"receiver"}'); };
     hangupButton.disabled = false;
