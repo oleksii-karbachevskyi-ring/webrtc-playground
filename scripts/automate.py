@@ -3,6 +3,7 @@ import os
 import shutil
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.select import Select
 from time import sleep
 
 _CHROMIUM_DIR           = '/home/oleksii/WS/chromium'
@@ -10,10 +11,11 @@ _WEBRTC_BACKEND_DIR     = '/home/oleksii/WS/webrtc-playground'
 _UNIX_SOCKET            = _CHROMIUM_DIR + '/us'
 _SENDER_USER_DATA_DIR   = '/home/oleksii/.config/chromium'
 _RECEIVER_USER_DATA_DIR = '/home/oleksii/.config/chromium2'
-_FAKE_VIDEO_FILE        = 'pedestrian_area_1080p25.y4m'
+_FAKE_VIDEO_FILE        = _CHROMIUM_DIR + '/pedestrian_area_1080p25.y4m'
+_HARDCODED_IVF_FOLDER   = '/home/oleksii/WS/chromium'
 
 class Environment:
-    def __init__(self, delay_ms=0, bandwidth_kbps=0, loss=0, http_port=8000, wss_port=8080, sender_cdp_port=5001, receiver_cdp_port=5002):
+    def __init__(self, delay_ms=0, bandwidth_kbps=0, loss=0, http_port=8000, wss_port=8080, sender_cdp_port=5001, receiver_cdp_port=5002, codec = 'H264'):
         self.__run_mahimahi(delay_ms, bandwidth_kbps, loss)
         # Tunnel's inner end
         self.p_shell.stdin.write(f'socat UNIX-LISTEN:{_UNIX_SOCKET},fork TCP4:localhost:5052 &\n')
@@ -28,7 +30,7 @@ class Environment:
         self.p_wss = sp.Popen(f'{_WEBRTC_BACKEND_DIR}/wsserver/Release/wsserver {wss_port}'.split(),
                               stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, text=True)
         self.__run_receiver_chrome(receiver_cdp_port, http_port, wss_port)
-        self.__run_sender_chrome(sender_cdp_port, http_port, wss_port)
+        self.__run_sender_chrome(sender_cdp_port, http_port, wss_port, codec)
 
     def run_test(self, duration):
         negotiateButton = self.sender_driver.find_element_by_id('negotiateButton')
@@ -58,13 +60,13 @@ class Environment:
         self.p_shell.communicate(input='exit\n')
 
     def save_output(self, ivf_file, sender_file, receiver_file):
-        for e in os.listdir():
+        for e in os.listdir(_HARDCODED_IVF_FOLDER):
             if e.startswith('webrtc_receive_stream_'):
-                st = os.stat(e)
+                st = os.stat(_HARDCODED_IVF_FOLDER + '/' + e)
                 if st.st_size:
-                    shutil.move(e, ivf_file)
+                    shutil.move(_HARDCODED_IVF_FOLDER + '/' + e, ivf_file)
                 else:
-                    os.remove(e)
+                    os.remove(_HARDCODED_IVF_FOLDER + '/' + e)
         shutil.move('sender_log', sender_file)
         shutil.move('receiver_log', receiver_file)
 
@@ -92,7 +94,7 @@ class Environment:
         self.p_shell.stdin.flush()
         self.base = self.p_shell.stdout.readline().strip()
 
-    def __run_sender_chrome(self, sender_cdp_port, http_port, wss_port):
+    def __run_sender_chrome(self, sender_cdp_port, http_port, wss_port, codec):
         p_sender = sp.Popen(f'{_CHROMIUM_DIR}/src/out/Release/chrome \
         --use-fake-device-for-media-stream \
         --use-file-for-fake-video-capture={_FAKE_VIDEO_FILE} \
@@ -108,14 +110,17 @@ class Environment:
         
         server_elm = sender_driver.find_element_by_id('server')
         server_elm.clear(); server_elm.send_keys(f'127.0.0.1:{wss_port}')
-        
+
         framerate_elm = sender_driver.find_element_by_id('framerate')
         framerate_elm.clear(); framerate_elm.send_keys('25')
-        
+
+        codec_elm = Select(sender_driver.find_element_by_id('codec'))
+        codec_elm.select_by_visible_text(codec)
+
         startButton = sender_driver.find_element_by_id('startButton')
         startButton.click()
         sleep(2)
-        
+
         connectButton = sender_driver.find_element_by_id('connectButton')
         connectButton.click()
         self.p_sender = p_sender
@@ -133,7 +138,7 @@ class Environment:
         receiver_options = Options()
         receiver_options.debugger_address = f'127.0.0.1:{receiver_cdp_port}'
         receiver_driver = webdriver.Chrome(executable_path=f'{_CHROMIUM_DIR}/chromedriver', options=receiver_options)
-        
+
         receiver_driver.get(f'http://{self.base}:{http_port}/content/receiver/')
         rcv_server_elm = receiver_driver.find_element_by_id('server')
         rcv_server_elm.clear(); rcv_server_elm.send_keys(f'{self.base}:{wss_port}')

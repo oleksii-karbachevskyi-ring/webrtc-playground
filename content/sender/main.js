@@ -160,6 +160,7 @@ function ChangePreferredCodec() {
     }
   }
   offer.sdp = sdp.join('\n');
+  console.log(`${offer.sdp}`);
 }
 
 function sendOffer() {
