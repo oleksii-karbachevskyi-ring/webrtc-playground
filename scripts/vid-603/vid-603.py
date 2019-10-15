@@ -33,20 +33,25 @@ for i in range(L):
         y = np.array(data['recv'][j-WINDOW+1:j+1]).reshape(-1,1) - x
         t = lr.fit(x.astype(np.float64), y.astype(np.float64)).predict([[send]])[0][0]
         data.loc[i, 'est_delay'] = t if t > 0 else 0
+
+#%% Plotting
 which = data['est_delay'] != 0
 x = np.array(data.loc[which, 'recv'] - data.loc[which, 'send']).astype(np.float64)
+time = np.array(data.loc[which, 'send'] - data.loc[data[which].index[0], 'send']).astype(np.float64)
+x -= 0.53e-3*time
 y = np.array(data.loc[which, 'est_delay'])
-print(np.corrcoef(x, y))
+y -= 0.53e-3*time
+print('Correlation =', np.corrcoef(x, y)[0][1])
 plt.plot(x/1000, y/1000, '.', markersize=1)
 MAX=200
 plt.plot([0, MAX], [0, MAX], markersize=1)
 plt.xlim(0, MAX)
 plt.ylim(0, MAX)
 plt.xlabel('Real delivery time, ms')
-plt.title('Predicted delivery time. ms')
+plt.ylabel('Predicted delivery time. ms')
+plt.title('Linear regression')
 
 plt.figure()
-y = data.loc[which, 'send'] - data.loc[data[which].index[0], 'send']
-plt.plot(y/1000, x/1000, '.', markersize=1)
+plt.plot(time/1000, x/1000, '.', markersize=1)
 plt.xlabel('Playing time, ms')
 plt.title('Real delivery time, ms')

@@ -10,7 +10,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(wsserver)
 
-set(BOOST_ROOT /opt)
+set(BOOST_ROOT /opt/rms_deps)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(PkgConfig)
