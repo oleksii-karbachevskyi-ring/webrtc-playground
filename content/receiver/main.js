@@ -79,13 +79,15 @@ async function onMessage(data) {
     if (obj.hasOwnProperty('offer')) {
         try {
             let remote_offer = { 'type': obj.offer.type, 'sdp': decodeURI(obj.offer.sdp_escaped) }
+            remote_offer = RemoveTransportCCIfNeeded(remote_offer)
             await pc.setRemoteDescription(remote_offer);
             onSetRemoteSuccess(pc);
             console.log('pc createAnswer start');
             // Since the 'remote' side has no media stream we need
             // to pass in the right constraints in order for it to
             // accept the incoming offer of audio and video.
-            const answer = await pc.createAnswer();
+            let answer = await pc.createAnswer();
+            answer = RemoveTransportCCIfNeeded(answer)
             await SetLocalDescriptionAndSendIt(answer);
         } catch (e) {
             onSetSessionDescriptionError(e);
@@ -136,6 +138,22 @@ async function SetLocalDescriptionAndSendIt(desc) {
         onSetSessionDescriptionError(e);
     }
     socket.send(`{"offer":{"type":"${desc.type}", "sdp_escaped":"${encodeURI(desc.sdp)}"}}`);
+}
+
+function RemoveTransportCCIfNeeded(desc) {
+    if (document.querySelector('#force_gcc').checked) {
+        // Removing transport-cc
+        let sdp = desc.sdp
+        sdp = sdp.split('\n')
+        let new_sdp = []
+        for (var i = 0; i < sdp.length; i++) {
+            if (sdp[i].includes('transport-cc') == false) {
+                new_sdp.push(sdp[i])
+            }
+        }
+        desc = {'type': desc.type, 'sdp': new_sdp.join('\n')}
+    }
+    return desc
 }
 
 function onSetLocalSuccess(pc) {
