@@ -23,7 +23,6 @@ localVideo.addEventListener('loadedmetadata', function() {
 let localStream;
 let pc;
 let rtpSender;
-let offer;
 let socket;
 const offerOptions = {
     offerToReceiveAudio: 0,
@@ -78,17 +77,18 @@ async function negotiate() {
 
     try {
         console.log('pc createOffer start');
-        offer = await pc.createOffer(offerOptions);
+        let offer = await pc.createOffer(offerOptions);
+        offer = RemoveTransportCCIfNeeded(offer)
+        offer = ChangePreferredCodec(offer);
+        console.log(`offer.sdp:\n${offer.sdp}`);
+        try {
+            await pc.setLocalDescription(offer);
+            sendOffer(offer);
+        } catch (e) {
+            onSetSessionDescriptionError(e);
+        }
     } catch (e) {
         onCreateSessionDescriptionError(e);
-    }
-
-    ChangePreferredCodec();
-    try {
-        await pc.setLocalDescription(offer);
-        sendOffer();
-    } catch (e) {
-        onSetSessionDescriptionError(e);
     }
 }
 
@@ -135,7 +135,7 @@ function onCreateSessionDescriptionError(error) {
   console.log(`Failed to create session description: ${error.toString()}`);
 }
 
-function ChangePreferredCodec() {
+function ChangePreferredCodec(offer) {
   let sdp = offer.sdp;
   sdp = sdp.split('\n');
   let selected = document.querySelector('#codec');
@@ -159,11 +159,29 @@ function ChangePreferredCodec() {
       }
     }
   }
-  offer.sdp = sdp.join('\n');
-  //console.log(`${offer.sdp}`);
+  offer = {'type': offer.type, 'sdp': sdp.join('\n')}
+  return offer
 }
 
-function sendOffer() {
+function RemoveTransportCCIfNeeded(desc) {
+  if (document.querySelector('#force_gcc').checked) {
+      // Removing transport-cc
+      let sdp = desc.sdp
+      sdp = sdp.split('\n')
+      let new_sdp = []
+      for (var i = 0; i < sdp.length; i++) {
+          if (sdp[i].includes('transport-cc') == false &&
+              sdp[i].includes('draft-holmer-rmcat-transport-wide-cc-extensions-01') == false &&
+              sdp[i].includes('transport-wide-cc-02') == false) {
+              new_sdp.push(sdp[i])
+          }
+      }
+      desc = {'type': desc.type, 'sdp': new_sdp.join('\n')}
+  }
+  return desc
+}
+
+function sendOffer(offer) {
     socket.send(`{"offer":{"type":"${offer.type}", "sdp_escaped":"${encodeURI(offer.sdp)}"}}`);
     console.log('Offer is sent');
 }

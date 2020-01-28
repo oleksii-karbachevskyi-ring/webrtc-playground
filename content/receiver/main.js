@@ -79,7 +79,6 @@ async function onMessage(data) {
     if (obj.hasOwnProperty('offer')) {
         try {
             let remote_offer = { 'type': obj.offer.type, 'sdp': decodeURI(obj.offer.sdp_escaped) }
-            remote_offer = RemoveTransportCCIfNeeded(remote_offer)
             await pc.setRemoteDescription(remote_offer);
             onSetRemoteSuccess(pc);
             console.log('pc createAnswer start');
@@ -88,6 +87,7 @@ async function onMessage(data) {
             // accept the incoming offer of audio and video.
             let answer = await pc.createAnswer();
             answer = RemoveTransportCCIfNeeded(answer)
+            console.log(`answer.sdp:\n${answer.sdp}`);
             await SetLocalDescriptionAndSendIt(answer);
         } catch (e) {
             onSetSessionDescriptionError(e);
@@ -147,7 +147,9 @@ function RemoveTransportCCIfNeeded(desc) {
         sdp = sdp.split('\n')
         let new_sdp = []
         for (var i = 0; i < sdp.length; i++) {
-            if (sdp[i].includes('transport-cc') == false) {
+            if (sdp[i].includes('transport-cc') == false &&
+                sdp[i].includes('draft-holmer-rmcat-transport-wide-cc-extensions-01') == false &&
+                sdp[i].includes('transport-wide-cc-02') == false) {
                 new_sdp.push(sdp[i])
             }
         }
@@ -155,7 +157,7 @@ function RemoveTransportCCIfNeeded(desc) {
     }
     return desc
 }
-
+  
 function onSetLocalSuccess(pc) {
     console.log(`${getName(pc)} setLocalDescription complete`);
 }
