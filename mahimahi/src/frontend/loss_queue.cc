@@ -7,8 +7,8 @@
 
 using namespace std;
 
-LossQueue::LossQueue()
-    : prng_( random_device()() )
+LossQueue::LossQueue( const uint32_t seed )
+    : prng_( seed )
 {}
 
 void LossQueue::read_packet( const string & contents )
@@ -38,8 +38,9 @@ bool IIDLoss::drop_packet( const string & packet __attribute((unused)) )
 
 static const double MS_PER_SECOND = 1000.0;
 
-SwitchingLink::SwitchingLink( const double mean_on_time, const double mean_off_time )
-    : link_is_on_( false ),
+SwitchingLink::SwitchingLink( const double mean_on_time, const double mean_off_time, const uint32_t seed )
+    : LossQueue( seed ),
+      link_is_on_( false ),
       on_process_( 1.0 / (MS_PER_SECOND * mean_off_time) ),
       off_process_( 1.0 / (MS_PER_SECOND * mean_on_time) ),
       next_switch_time_( timestamp() )

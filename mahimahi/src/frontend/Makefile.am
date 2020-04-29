@@ -11,10 +11,20 @@ mm_loss_SOURCES = lossshell.cc loss_queue.hh loss_queue.cc
 mm_loss_LDADD = -lrt ../util/libutil.a ../packet/libpacket.a
 mm_loss_LDFLAGS = -pthread
 
+bin_PROGRAMS += mm-loss2
+mm_loss2_SOURCES = lossshell2.cc loss_queue.hh loss_queue.cc
+mm_loss2_LDADD = -lrt ../util/libutil.a ../packet/libpacket.a
+mm_loss2_LDFLAGS = -pthread
+
 bin_PROGRAMS += mm-onoff
 mm_onoff_SOURCES = onoffshell.cc loss_queue.hh loss_queue.cc
 mm_onoff_LDADD = -lrt ../util/libutil.a ../packet/libpacket.a
 mm_onoff_LDFLAGS = -pthread
+
+bin_PROGRAMS += mm-onoff2
+mm_onoff2_SOURCES = onoffshell2.cc loss_queue.hh loss_queue.cc
+mm_onoff2_LDADD = -lrt ../util/libutil.a ../packet/libpacket.a
+mm_onoff2_LDFLAGS = -pthread
 
 bin_PROGRAMS += mm-link
 mm_link_SOURCES = linkshell.cc link_queue.hh link_queue.cc
@@ -51,8 +61,12 @@ install-exec-hook:
 	chmod u+s $(DESTDIR)$(bindir)/mm-delay
 	chown root $(DESTDIR)$(bindir)/mm-loss
 	chmod u+s $(DESTDIR)$(bindir)/mm-loss
+	chown root $(DESTDIR)$(bindir)/mm-loss2
+	chmod u+s $(DESTDIR)$(bindir)/mm-loss2
 	chown root $(DESTDIR)$(bindir)/mm-onoff
 	chmod u+s $(DESTDIR)$(bindir)/mm-onoff
+	chown root $(DESTDIR)$(bindir)/mm-onoff2
+	chmod u+s $(DESTDIR)$(bindir)/mm-onoff2
 	chown root $(DESTDIR)$(bindir)/mm-link
 	chmod u+s $(DESTDIR)$(bindir)/mm-link
 	chown root $(DESTDIR)$(bindir)/mm-meter

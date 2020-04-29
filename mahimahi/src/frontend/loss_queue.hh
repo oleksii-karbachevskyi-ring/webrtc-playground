@@ -18,10 +18,10 @@ private:
     virtual bool drop_packet( const std::string & packet ) = 0;
 
 protected:
-    std::default_random_engine prng_;
+    std::mt19937_64 prng_;
 
 public:
-    LossQueue();
+    LossQueue(const uint32_t seed);
     virtual ~LossQueue() {}
 
     void read_packet( const std::string & contents );
@@ -43,7 +43,9 @@ private:
     bool drop_packet( const std::string & packet ) override;
 
 public:
-    IIDLoss( const double loss_rate ) : drop_dist_( loss_rate ) {}
+    IIDLoss( const double loss_rate, const uint32_t seed )
+    : LossQueue ( seed ), drop_dist_( loss_rate )
+    {}
 };
 
 class SwitchingLink : public LossQueue
@@ -60,7 +62,7 @@ private:
     bool drop_packet( const std::string & packet ) override;
 
 public:
-    SwitchingLink( const double mean_on_time_, const double mean_off_time );
+    SwitchingLink( const double mean_on_time_, const double mean_off_time, const uint32_t seed );
 
     unsigned int wait_time( void );
 };

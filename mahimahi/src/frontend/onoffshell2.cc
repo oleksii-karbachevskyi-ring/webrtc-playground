@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <random>
 
 #include <getopt.h>
 
@@ -15,7 +16,7 @@ using namespace std;
 
 void usage( const string & program_name )
 {
-    throw runtime_error( "Usage: " + program_name + " uplink|downlink MEAN-ON-TIME MEAN-OFF-TIME [COMMAND...]" );
+    throw runtime_error( "Usage: " + program_name + " uplink|downlink MEAN-ON-TIME MEAN-OFF-TIME SEED [COMMAND...]" );
 }
 
 int main( int argc, char *argv[] )
@@ -27,9 +28,11 @@ int main( int argc, char *argv[] )
 
         check_requirements( argc, argv );
 
-        if ( argc < 4 ) {
+        if ( argc < 5 ) {
             usage( argv[ 0 ] );
         }
+
+        const string link = argv[ 1 ];
 
         const double on_time = myatof( argv[ 2 ] );
         if ( (0 <= on_time) ) {
@@ -55,7 +58,6 @@ int main( int argc, char *argv[] )
         double uplink_on_time = numeric_limits<double>::max(), uplink_off_time = 0;
         double downlink_on_time = numeric_limits<double>::max(), downlink_off_time = 0;
 
-        const string link = argv[ 1 ];
         if ( link == "uplink" ) {
             uplink_on_time = on_time;
             uplink_off_time = off_time;
@@ -66,12 +68,14 @@ int main( int argc, char *argv[] )
             usage( argv[ 0 ] );
         }
 
+        const long int seed = myatoi( argv[ 4 ], 0 );
+
         vector<string> command;
 
-        if ( argc == 4 ) {
+        if ( argc == 5 ) {
             command.push_back( shell_path() );
         } else {
-            for ( int i = 4; i < argc; i++ ) {
+            for ( int i = 5; i < argc; i++ ) {
                 command.push_back( argv[ i ] );
             }
         }
@@ -91,9 +95,8 @@ int main( int argc, char *argv[] )
 
         onoff_app.start_uplink( shell_prefix,
                                 command,
-                                uplink_on_time, uplink_off_time, std::random_device()() );
-        onoff_app.start_downlink( downlink_on_time, downlink_off_time,
-                                  std::random_device()() );
+                                uplink_on_time, uplink_off_time, (uint32_t) seed );
+        onoff_app.start_downlink( downlink_on_time, downlink_off_time, (uint32_t) seed + 1 );
         return onoff_app.wait_for_exit();
     } catch ( const exception & e ) {
         print_exception( e );

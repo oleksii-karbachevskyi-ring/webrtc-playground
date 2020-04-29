@@ -69,6 +69,26 @@ either when leaving (uplink) or entering (downlink) the container.
 is a number between 0 and 1.
 .RE
 
+.SY mm-loss2
+uplink|downlink
+.I rate
+.I seed
+.RI [ command... ]
+.YS
+.
+.IP ""
+.RS
+
+Packets are lost at the given
+.I rate
+either when leaving (uplink) or entering (downlink) the container.
+.I rate
+is a number between 0 and 1. Initial value for pseudorandom number generator
+is specific via 4-byte
+.I seed
+value, for example, 0x12345678 or 12345678.
+.RE
+
 .SY mm-onoff
 uplink|downlink
 .I mean-on-time
@@ -83,6 +103,26 @@ The uplink or downlink will be
 intermittent and will switch between connected and disconnected states
 according to a Poisson point process with specified average durations
 spent "on" and "off".
+.RE
+
+.SY mm-onoff2
+uplink|downlink
+.I mean-on-time
+.I mean-off-time
+.I seed
+.RI [ command... ]
+.YS
+.
+.IP ""
+.RS
+
+The uplink or downlink will be
+intermittent and will switch between connected and disconnected states
+according to a Poisson point process with specified average durations
+spent "on" and "off". Initial value for pseudorandom number generator
+is specific via 4-byte
+.I seed
+value, for example, 0x12345678 or 12345678.
 .RE
 
 .SY mm-link

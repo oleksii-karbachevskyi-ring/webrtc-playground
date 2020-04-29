@@ -1,9 +1,10 @@
 /* -*-mode:c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 
+#include <cstdint>
+
 #include <vector>
 #include <string>
 #include <iostream>
-#include <random>
 
 #include <getopt.h>
 
@@ -16,7 +17,7 @@ using namespace std;
 
 void usage( const string & program_name )
 {
-    throw runtime_error( "Usage: " + program_name + " uplink|downlink RATE [COMMAND...]" );
+    throw runtime_error( "Usage: " + program_name + " uplink|downlink RATE SEED [COMMAND...]" );
 }
 
 int main( int argc, char *argv[] )
@@ -28,9 +29,13 @@ int main( int argc, char *argv[] )
 
         check_requirements( argc, argv );
 
-        if ( argc < 3 ) {
+        if ( argc < 4 ) {
             usage( argv[ 0 ] );
         }
+
+        double uplink_loss = 0, downlink_loss = 0;
+
+        const string link = argv[ 1 ];
 
         const double loss_rate = myatof( argv[ 2 ] );
         if ( (0 <= loss_rate) and (loss_rate <= 1) ) {
@@ -40,9 +45,8 @@ int main( int argc, char *argv[] )
             usage( argv[ 0 ] );
         }
 
-        double uplink_loss = 0, downlink_loss = 0;
+        const long int seed = myatoi( argv[ 3 ], 0 );
 
-        const string link = argv[ 1 ];
         if ( link == "uplink" ) {
             uplink_loss = loss_rate;
         } else if ( link == "downlink" ) {
@@ -53,10 +57,10 @@ int main( int argc, char *argv[] )
 
         vector<string> command;
 
-        if ( argc == 3 ) {
+        if ( argc == 4 ) {
             command.push_back( shell_path() );
         } else {
-            for ( int i = 3; i < argc; i++ ) {
+            for ( int i = 4; i < argc; i++ ) {
                 command.push_back( argv[ i ] );
             }
         }
@@ -75,9 +79,9 @@ int main( int argc, char *argv[] )
         loss_app.start_uplink( shell_prefix,
                                command,
                                uplink_loss,
-                               std::random_device()() );
+                               (uint32_t) seed );
         loss_app.start_downlink( downlink_loss,
-                                 std::random_device()() );
+                               (uint32_t) seed + 1 );
         return loss_app.wait_for_exit();
     } catch ( const exception & e ) {
         print_exception( e );

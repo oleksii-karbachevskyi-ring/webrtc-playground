@@ -32,8 +32,10 @@ Makefile.in
 /src/protobufs/http_record.pb.h
 /src/frontend/mm-delay
 /src/frontend/mm-loss
+/src/frontend/mm-loss2
 /src/frontend/mm-link
 /src/frontend/mm-onoff
+/src/frontend/mm-onoff2
 /src/frontend/mm-meter
 /src/frontend/mm-webrecord
 /src/frontend/mm-webreplay
