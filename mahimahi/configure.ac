@@ -126,6 +126,5 @@ AC_CONFIG_FILES([Makefile
 		 src/protobufs/Makefile
 		 src/tests/Makefile
 		 man/Makefile
-		 traces/Makefile
 		 scripts/Makefile])
 AC_OUTPUT

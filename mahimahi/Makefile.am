@@ -1,2 +1,2 @@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = src man traces scripts
+SUBDIRS = src man scripts
