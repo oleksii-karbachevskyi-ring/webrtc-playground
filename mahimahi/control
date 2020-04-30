@@ -1,0 +1,17 @@
+Package: mahimahi
+Version: 0.98
+Architecture: amd64
+Maintainer: Oleksii Karbachevskyi
+Original-Maintainer: Keith Winstein <keithw@mit.edu>
+Depends: libc6 (>= 2.17), libcairo2 (>= 1.6.4-5~), libgcc1 (>= 1:3.0), libglib2.0-0 (>= 2.12.0), libpango-1.0-0 (>= 1.14.0), libpangocairo-1.0-0 (>= 1.22.0), libprotobuf10, libssl1.1 (>= 1.1.0), libstdc++6 (>= 6), libxcb-present0, libxcb1, iptables, dnsmasq-base, apache2-bin, gnuplot, iproute2, apache2-api-20120211
+Description: [Patched] tools for network emulation and analysis
+ Mahimahi is a suite of user-space tools for network emulation and analysis.
+ .
+ Each mahimahi tool spawns a lightweight container, generally connected
+ to the outside via a synthetic network device that observes packets in
+ transit or emulates a desired behavior.
+ .
+ The tools are composable so that a series of emulated network effects
+ can be chained together, with mahimahi containers nested inside each
+ other. Each tool takes an optional command to execute, so it is possible
+ to create a series of nested containers with one command line.
